@@ -55,13 +55,13 @@ difference() {
 
 	// wire channel rounded corners
 	translate(v = [-A/2 + corner_radius, E/2 - corner_radius, thickness-wire_depth])
-		rotate([0, 0, 90]) rotate_extrude(90) translate ([corner_radius,0,0]) circle(dia/2);
+		rotate([0, 0, 90]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
 	translate(v = [A/2 - corner_radius, E/2 - corner_radius, thickness-wire_depth])
-		rotate_extrude(90) translate ([corner_radius,0,0]) circle(dia/2);
+		rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
 	translate(v = [-A/2 + corner_radius, -E/2 + corner_radius, thickness-wire_depth])
-		rotate([0, 0, 180]) rotate_extrude(90) translate ([corner_radius,0,0]) circle(dia/2);
+		rotate([0, 0, 180]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
 	translate(v = [A/2 - corner_radius, -E/2 + corner_radius, thickness-wire_depth])
-		rotate([0, 0, 270]) rotate_extrude(90) translate ([corner_radius,0,0]) circle(dia/2);
+		rotate([0, 0, 270]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
 
 	// left wire endstop
 	translate(v = [-(A/2 + dia/2 + 1), E/2 - B - C, 0])
