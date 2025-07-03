@@ -6,8 +6,7 @@
 
 freq_mhz = 433;             // Design frequency in MHz
 wire_dia_mm = 1.0;          // Wire diameter in mm
-impedance = 50;             // Target impedance: 50 or 93 ohms
-frame = 6;                  // Frame width
+frame = 7;                  // Frame width
 thickness = 2.5;            // Frame thickness
 corner_radius = 3;
 wire_depth_ratio = 0.33;    // Wire channel depth as fraction of diameter
@@ -18,7 +17,7 @@ tsize = 6;
 font = "Core Sans D 55 Bold";
 $fn = 255;
 
-function moxon_calculate_dimensions(f_mhz, dia_mm, target_z = 50) = 
+function moxon_calculate_dimensions(f_mhz, dia_mm) = 
     let(
         // Calculate wavelength in mm
         c = 299792458,              // Speed of light in m/s
@@ -32,32 +31,31 @@ function moxon_calculate_dimensions(f_mhz, dia_mm, target_z = 50) =
         dia_wl_max = 1e-2,
         dia_valid = (dia_wavelengths >= dia_wl_min && dia_wavelengths <= dia_wl_max),
         
-        // Select coefficients based on target impedance
-        // 50-ohm coefficients (Cebik's original)
-        coeff_50 = [
-            [-0.0008571428571, -0.009571428571, 0.3398571429],      // A
-            [-0.002142857143, -0.02035714286, 0.008285714286],      // B  
-            [0.001809523381, 0.01780952381, 0.05164285714],         // C
-            [0.001, 0.07178571429]                                  // D (linear)
-        ],
+        // Cebik's empirical coefficients for 50-ohm Moxon
+        // A dimension coefficients
+        AA = -0.0008571428571,
+        AB = -0.009571428571,
+        AC = 0.3398571429,
         
-        // 93-ohm coefficients (estimated - would need Cebik's actual data)
-        // These are placeholder values - real implementation would need the actual coefficients
-        coeff_93 = [
-            [-0.0008571428571, -0.009571428571, 0.3498571429],      // A (slightly wider)
-            [-0.002142857143, -0.02035714286, 0.007285714286],      // B  
-            [0.001809523381, 0.01680952381, 0.05464285714],         // C (larger gap)
-            [0.001, 0.07078571429]                                  // D
-        ],
+        // B dimension coefficients  
+        BA = -0.002142857143,
+        BB = -0.02035714286,
+        BC = 0.008285714286,
         
-        // Select appropriate coefficient set
-        coeffs = (target_z == 93) ? coeff_93 : coeff_50,
+        // C dimension coefficients
+        CA = 0.001809523381,
+        CB = 0.01780952381,
+        CC = 0.05164285714,
         
-        // Calculate dimensions in wavelengths using polynomial formulas
-        A_wl = (coeffs[0][0] * pow(dia_wavelengths, 2)) + (coeffs[0][1] * dia_wavelengths) + coeffs[0][2],
-        B_wl = (coeffs[1][0] * pow(dia_wavelengths, 2)) + (coeffs[1][1] * dia_wavelengths) + coeffs[1][2],
-        C_wl = (coeffs[2][0] * pow(dia_wavelengths, 2)) + (coeffs[2][1] * dia_wavelengths) + coeffs[2][2],
-        D_wl = (coeffs[3][0] * dia_wavelengths) + coeffs[3][1],
+        // D dimension coefficients
+        DA = 0.001,
+        DB = 0.07178571429,
+        
+        // Calculate dimensions in wavelengths using Cebik's formulas
+        A_wl = (AA * pow(dia_wavelengths, 2)) + (AB * dia_wavelengths) + AC,
+        B_wl = (BA * pow(dia_wavelengths, 2)) + (BB * dia_wavelengths) + BC,
+        C_wl = (CA * pow(dia_wavelengths, 2)) + (CB * dia_wavelengths) + CC,
+        D_wl = (DA * dia_wavelengths) + DB,
         E_wl = B_wl + C_wl + D_wl,
         
         // Convert to millimeters
@@ -75,7 +73,7 @@ function moxon_calculate_dimensions(f_mhz, dia_mm, target_z = 50) =
     [A_mm, B_mm, C_mm, D_mm, E_mm, wavelength_mm, dia_valid, boom_length_wl, total_wire_length_mm, compactness];
 
 // Calculate the actual dimensions
-calc_result = moxon_calculate_dimensions(freq_mhz, wire_dia_mm, impedance);
+calc_result = moxon_calculate_dimensions(freq_mhz, wire_dia_mm);
 A = calc_result[0];
 B = calc_result[1];
 C = calc_result[2];
@@ -94,7 +92,6 @@ wire_depth = dia * wire_depth_ratio;
 // Verbose
 echo(str("=== MOXON CALCULATOR RESULTS ==="));
 echo(str("Design frequency: ", freq_mhz, " MHz"));
-echo(str("Target impedance: ", impedance, " ohms"));
 echo(str("Wire diameter: ", wire_dia_mm, " mm (", round(wire_dia_mm/wavelength * 1000000)/1000000, " λ)"));
 echo(str(""));
 echo(str("Calculated dimensions:"));
@@ -115,10 +112,6 @@ if (!diameter_valid) {
     echo(str("⚠ WARNING: Wire diameter outside validated range!"));
     echo(str("   Formulas valid for diameters 1E-5 to 1E-2 wavelengths"));
     echo(str("   Current: ", round(wire_dia_mm/wavelength * 1000000)/1000000, " λ"));
-}
-
-if (impedance == 93) {
-    echo(str("ℹ NOTE: 93Ω coefficients are estimated - verify with antenna modeling software"));
 }
 
 difference() {
