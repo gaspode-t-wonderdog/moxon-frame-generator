@@ -4,14 +4,16 @@
 // 2025 DN9TT (tom@jitter.eu)
 // License: CC-BY-NC-SA
 
-freq_mhz = 433;             // Design frequency in MHz
-wire_dia_mm = 1.0;          // Wire diameter in mm
-frame = 7;                  // Frame width
-thickness = 2.5;            // Frame thickness
+freq_mhz = 433;              // Design frequency in MHz
+wire_dia_mm = 1.0;           // Wire diameter in mm
+wire_vf = 0.95;              // Wire velocity factor (0.94-0.98 for PVC/insulated, 1.0 for bare)
+structure_correction = 1.03; // Structure dielectric loading (1.02-1.05 for plastic frames)
+frame = 7;                   // Frame width
+thickness = 2.5;             // Frame thickness
 corner_radius = 3;
-wire_depth_ratio = 0.33;    // Wire channel depth as fraction of diameter
+wire_depth_ratio = 0.33;     // Wire channel depth as fraction of diameter
 handle_length = 60;
-connector = "bnc";          // "sma", "bnc", "screw", or "none"
+connector = "bnc";           // "sma", "bnc", "screw", or "none"
 screw_dia = 4.4;
 tsize = 6;
 font = "Core Sans D 55 Bold";
@@ -74,15 +76,29 @@ function moxon_calculate_dimensions(f_mhz, dia_mm) =
 
 // Calculate the actual dimensions
 calc_result = moxon_calculate_dimensions(freq_mhz, wire_dia_mm);
-A = calc_result[0];
-B = calc_result[1];
-C = calc_result[2];
-D = calc_result[3];
-E = calc_result[4];
+A_raw = calc_result[0];
+B_raw = calc_result[1];
+C_raw = calc_result[2];
+D_raw = calc_result[3];
+E_raw = calc_result[4];
+
+// Apply wire velocity factor correction (for insulated wire)
+A_vf = A_raw * wire_vf;
+B_vf = B_raw * wire_vf;
+C_vf = C_raw * wire_vf;
+D_vf = D_raw * wire_vf;
+E_vf = E_raw * wire_vf;
+
+// Apply structure correction (for plastic frame loading)
+A = A_vf * structure_correction;
+B = B_vf * structure_correction;
+C = C_vf * structure_correction;
+D = D_vf * structure_correction;
+E = E_vf * structure_correction;
 wavelength = calc_result[5];
 diameter_valid = calc_result[6];
 boom_length_wavelengths = calc_result[7];
-wire_length_mm = calc_result[8];
+wire_length_mm = calc_result[8] * wire_vf * structure_correction;
 compactness_factor = calc_result[9];
 
 // Wire channel parameters
@@ -93,6 +109,10 @@ wire_depth = dia * wire_depth_ratio;
 echo(str("=== MOXON CALCULATOR RESULTS ==="));
 echo(str("Design frequency: ", freq_mhz, " MHz"));
 echo(str("Wire diameter: ", wire_dia_mm, " mm (", round(wire_dia_mm/wavelength * 1000000)/1000000, " λ)"));
+echo(str("Wire velocity factor: ", wire_vf, " (", wire_vf == 1.0 ? "bare wire" : "insulated wire", ")"));
+echo(str("Structure correction: ", structure_correction, " (plastic frame dielectric loading)"));
+echo(str("   → Combined effect: ", round((wire_vf * structure_correction - 1)*1000)/10, "% dimension change"));
+echo(str("   → Without corrections, antenna would resonate ~", round(freq_mhz/(wire_vf * structure_correction)), " MHz"));
 echo(str(""));
 echo(str("Calculated dimensions:"));
 echo(str("A (width): ", round(A*100)/100, " mm (", round(A/wavelength*1000)/1000, " λ)"));
@@ -112,6 +132,16 @@ if (!diameter_valid) {
     echo(str("⚠ WARNING: Wire diameter outside validated range!"));
     echo(str("   Formulas valid for diameters 1E-5 to 1E-2 wavelengths"));
     echo(str("   Current: ", round(wire_dia_mm/wavelength * 1000000)/1000000, " λ"));
+}
+
+if (wire_vf < 0.92 || wire_vf > 1.0) {
+    echo(str("⚠ WARNING: Wire velocity factor outside typical range!"));
+    echo(str("   Typical values: PVC=0.94-0.96, PTFE=0.95-0.97, PE=0.66, bare=1.0"));
+}
+
+if (structure_correction < 1.0 || structure_correction > 1.06) {
+    echo(str("⚠ WARNING: Structure correction outside validated range!"));
+    echo(str("   Research shows 1.02-1.05 for plastic structures, 1.0 for no frame"));
 }
 
 difference() {
