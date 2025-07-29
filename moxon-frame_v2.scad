@@ -1,23 +1,63 @@
 // "Self-calculating Moxon antenna frame generator"
 // Original idea: https://www.thingiverse.com/thing:2068392
 // Based on empirical formulas by L.B. Cebik (W4RNL)
+// https://www.antenna2.net/cebik/books/Moxon-Rectangle-Notes.pdf
 // 2025 DN9TT (tom@jitter.eu)
 // License: CC-BY-NC-SA
 
-freq_mhz = 433;              // Design frequency in MHz
-wire_dia_mm = 1.0;           // Wire diameter in mm
-wire_vf = 0.95;              // Wire velocity factor (0.94-0.98 for PVC/insulated, 1.0 for bare)
-structure_correction = 1.03; // Structure dielectric loading (1.02-1.05 for plastic frames)
-frame = 7;                   // Frame width
-thickness = 2.5;             // Frame thickness
-corner_radius = 3;
-wire_depth_ratio = 0.33;     // Wire channel depth as fraction of diameter
-handle_length = 60;
-connector = "bnc";           // "sma", "bnc", "screw", or "none"
-screw_dia = 4.4;
-tsize = 6;
-font = "Core Sans D 55 Bold";
-$fn = 255;
+// ===== USER ADJUSTABLE PARAMETERS =====
+
+// === BASIC ANTENNA DESIGN ===
+// Design frequency in MHz
+freq_mhz = 433; // [50:1:3000]
+// Wire diameter in mm
+wire_dia_mm = 1.0; // [0.5:0.1:3.0]
+
+// === MATERIAL PROPERTIES ===
+// Wire velocity factor (accounts for insulation): 1.0=bare, 0.95=PTFE, 0.94=PVC, 0.66=PE
+wire_velocity_factor = 0.95; // [0.60:0.01:1.00]
+// Frame dielectric loading correction: 1.0=air, 1.03=plastic frame
+structure_correction = 1.03; // [1.00:0.01:1.10]
+
+// === FRAME CONSTRUCTION ===
+// Frame wall thickness (mm)
+frame_width = 8.0; // [4:0.5:15]
+// Frame height/thickness (mm)
+frame_thickness = 3.0; // [1.2:0.1:5.0]
+// Corner rounding radius (mm)
+corner_radius = 3.0; // [0.5:0.5:8]
+
+// === WIRE CHANNEL ===
+// Wire clearance tolerance (mm)
+wire_tolerance = 0.1; // [0.05:0.05:0.5]
+// Channel depth as fraction of wire diameter
+wire_depth_ratio = 0.33; // [0.15:0.01:0.60]
+
+// === HANDLE & MOUNTING ===
+// Handle length (mm) - set to 0 to disable
+handle_length = 60; // [0:5:120]
+// Handle width (mm)
+handle_width = 21; // [12:1:35]
+
+// === CONNECTOR ===
+// RF connector type
+connector = "bnc"; // ["none", "sma", "bnc", "screw"]
+// Screw diameter (mm) - for screw connector type
+screw_dia = 4.4; // [2.5:0.1:8.0]
+
+// === APPEARANCE ===
+// Frequency label text size (mm)
+text_size = 6; // [3:0.5:15]
+// Text font
+text_font = "Liberation Sans:style=Bold";
+// Show frequency label on handle
+show_frequency_text = true;
+
+// === RENDERING QUALITY ===
+// Circle resolution - higher values = smoother curves but slower rendering
+$fn = 64; // [12:4:200]
+
+// ===== DERIVED PARAMETERS (DO NOT EDIT) =====
 
 function moxon_calculate_dimensions(f_mhz, dia_mm) = 
     let(
@@ -32,6 +72,9 @@ function moxon_calculate_dimensions(f_mhz, dia_mm) =
         dia_wl_min = 1e-5,
         dia_wl_max = 1e-2,
         dia_valid = (dia_wavelengths >= dia_wl_min && dia_wavelengths <= dia_wl_max),
+        
+        // Use log10 of diameter in wavelengths
+        log_dia = log(dia_wavelengths) / log(10),  // Convert to common log (base 10)
         
         // Cebik's empirical coefficients for 50-ohm Moxon
         // A dimension coefficients
@@ -54,10 +97,10 @@ function moxon_calculate_dimensions(f_mhz, dia_mm) =
         DB = 0.07178571429,
         
         // Calculate dimensions in wavelengths using Cebik's formulas
-        A_wl = (AA * pow(dia_wavelengths, 2)) + (AB * dia_wavelengths) + AC,
-        B_wl = (BA * pow(dia_wavelengths, 2)) + (BB * dia_wavelengths) + BC,
-        C_wl = (CA * pow(dia_wavelengths, 2)) + (CB * dia_wavelengths) + CC,
-        D_wl = (DA * dia_wavelengths) + DB,
+        A_wl = (AA * pow(log_dia, 2)) + (AB * log_dia) + AC,
+        B_wl = (BA * pow(log_dia, 2)) + (BB * log_dia) + BC,
+        C_wl = (CA * pow(log_dia, 2)) + (CB * log_dia) + CC,
+        D_wl = (DA * log_dia) + DB,
         E_wl = B_wl + C_wl + D_wl,
         
         // Convert to millimeters
@@ -83,11 +126,11 @@ D_raw = calc_result[3];
 E_raw = calc_result[4];
 
 // Apply wire velocity factor correction (for insulated wire)
-A_vf = A_raw * wire_vf;
-B_vf = B_raw * wire_vf;
-C_vf = C_raw * wire_vf;
-D_vf = D_raw * wire_vf;
-E_vf = E_raw * wire_vf;
+A_vf = A_raw * wire_velocity_factor;
+B_vf = B_raw * wire_velocity_factor;
+C_vf = C_raw * wire_velocity_factor;
+D_vf = D_raw * wire_velocity_factor;
+E_vf = E_raw * wire_velocity_factor;
 
 // Apply structure correction (for plastic frame loading)
 A = A_vf * structure_correction;
@@ -98,21 +141,21 @@ E = E_vf * structure_correction;
 wavelength = calc_result[5];
 diameter_valid = calc_result[6];
 boom_length_wavelengths = calc_result[7];
-wire_length_mm = calc_result[8] * wire_vf * structure_correction;
+wire_length_mm = calc_result[8] * wire_velocity_factor * structure_correction;
 compactness_factor = calc_result[9];
 
 // Wire channel parameters
-dia = wire_dia_mm + 0.1;    // Add tolerance for 3D printing
+dia = wire_dia_mm + wire_tolerance;    // Add tolerance for 3D printing
 wire_depth = dia * wire_depth_ratio;
 
-// Verbose
+// Verbose output
 echo(str("=== MOXON CALCULATOR RESULTS ==="));
 echo(str("Design frequency: ", freq_mhz, " MHz"));
 echo(str("Wire diameter: ", wire_dia_mm, " mm (", round(wire_dia_mm/wavelength * 1000000)/1000000, " λ)"));
-echo(str("Wire velocity factor: ", wire_vf, " (", wire_vf == 1.0 ? "bare wire" : "insulated wire", ")"));
+echo(str("Wire velocity factor: ", wire_velocity_factor, " (", wire_velocity_factor == 1.0 ? "bare wire" : "insulated wire", ")"));
 echo(str("Structure correction: ", structure_correction, " (plastic frame dielectric loading)"));
-echo(str("   → Combined effect: ", round((wire_vf * structure_correction - 1)*1000)/10, "% dimension change"));
-echo(str("   → Without corrections, antenna would resonate ~", round(freq_mhz/(wire_vf * structure_correction)), " MHz"));
+echo(str("   → Combined effect: ", round((wire_velocity_factor * structure_correction - 1)*1000)/10, "% dimension change"));
+echo(str("   → Without corrections, antenna would resonate ~", round(freq_mhz/(wire_velocity_factor * structure_correction)), " MHz"));
 echo(str(""));
 echo(str("Calculated dimensions:"));
 echo(str("A (width): ", round(A*100)/100, " mm (", round(A/wavelength*1000)/1000, " λ)"));
@@ -134,7 +177,7 @@ if (!diameter_valid) {
     echo(str("   Current: ", round(wire_dia_mm/wavelength * 1000000)/1000000, " λ"));
 }
 
-if (wire_vf < 0.92 || wire_vf > 1.0) {
+if (wire_velocity_factor < 0.92 || wire_velocity_factor > 1.0) {
     echo(str("⚠ WARNING: Wire velocity factor outside typical range!"));
     echo(str("   Typical values: PVC=0.94-0.96, PTFE=0.95-0.97, PE=0.66, bare=1.0"));
 }
@@ -144,66 +187,62 @@ if (structure_correction < 1.0 || structure_correction > 1.06) {
     echo(str("   Research shows 1.02-1.05 for plastic structures, 1.0 for no frame"));
 }
 
+// ===== 3D MODEL GENERATION =====
+
 difference() {
     union() {
         // Outer roundtangle
-        rcube([A + frame, E + frame, thickness], 3, true, false);
+        rcube([A + frame_width, E + frame_width, frame_thickness], 3, true, false);
         // Handle
-        translate(v = [0, -E/2 - frame - handle_length/2 + 10, 0])
-            rcube([21, handle_length + 10, thickness], 6.5, true, false);
+        if (handle_length > 0) {
+            translate(v = [0, -E/2 - frame_width - handle_length/2 + 10, 0])
+                rcube([handle_width, handle_length + 10, frame_thickness], 6.5, true, false);
+        }
     }
 
     // Wire channels - vertical sides
-    translate(v = [-A/2, E/2 - corner_radius, thickness-wire_depth])
+    translate(v = [-A/2, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate([90, 0, 0])  
         linear_extrude(E - corner_radius*2) circle(dia/2);
-    translate(v = [A/2, E/2 - corner_radius, thickness-wire_depth])
+    translate(v = [A/2, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate([90, 0, 0])  
         linear_extrude(E - corner_radius*2) circle(dia/2);
         
     // Wire channels - horizontal sides
-    translate(v = [-A/2 + corner_radius, E/2, thickness-wire_depth])
+    translate(v = [-A/2 + corner_radius, E/2, frame_thickness-wire_depth])
         rotate([0, 90, 0]) 
         linear_extrude(A - corner_radius*2) circle(dia/2);
-    translate(v = [-A/2 + corner_radius, -E/2, thickness-wire_depth])
+    translate(v = [-A/2 + corner_radius, -E/2, frame_thickness-wire_depth])
         rotate([0, 90, 0]) 
         linear_extrude(A - corner_radius*2) circle(dia/2);
 
     // Wire channel rounded corners
-    translate(v = [-A/2 + corner_radius, E/2 - corner_radius, thickness-wire_depth])
+    translate(v = [-A/2 + corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate([0, 0, 90]) 
         rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
-    translate(v = [A/2 - corner_radius, E/2 - corner_radius, thickness-wire_depth])
+    translate(v = [A/2 - corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
-    translate(v = [-A/2 + corner_radius, -E/2 + corner_radius, thickness-wire_depth])
+    translate(v = [-A/2 + corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
         rotate([0, 0, 180]) 
         rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
-    translate(v = [A/2 - corner_radius, -E/2 + corner_radius, thickness-wire_depth])
+    translate(v = [A/2 - corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
         rotate([0, 0, 270]) 
         rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
 
     // Left wire endstop (driver tail)
     translate(v = [-(A/2 + dia/2 + 1), E/2 - B - C, 0])
-        cube(size=[dia + 2, C, thickness]);
+        cube(size=[dia + 2, C, frame_thickness]);
     // Right wire endstop (reflector tail)
     translate(v = [(A/2 - dia/2 - 1), E/2 - B - C, 0])
-        cube(size=[dia + 2, C, thickness]);
+        cube(size=[dia + 2, C, frame_thickness]);
 
     // Left wing cutout
-    translate(v = [-((A/2 + frame)/2), 0, 0])
-        rcube([(A/2 - frame*2), E - frame, thickness], 2.5, true, false);
+    translate(v = [-((A/2 + frame_width)/2), 0, 0])
+        rcube([(A/2 - frame_width*2), E - frame_width, frame_thickness], 2.5, true, false);
 
     // Right wing cutout
-    translate(v = [(A/2 + frame)/2, 0, 0])
-        rcube([(A/2 - frame*2), E - frame, thickness], 2.5, true, false);
-
-    // Big notch for wire insertion
-    translate(v = [0, E/2, 0])
-        rcube([10, 20, thickness], 3, true, false);
-
-    // Smaller notch for wire routing
-    translate(v = [0, E/2, 0])
-        rcube([5, 40, thickness], 1.5, true, false);
+    translate(v = [(A/2 + frame_width)/2, 0, 0])
+        rcube([(A/2 - frame_width*2), E - frame_width, frame_thickness], 2.5, true, false);
 
     // Holes for cable ties (scaled with antenna size)
     if (E > 80) {
@@ -221,48 +260,52 @@ difference() {
     }
 
     // Holes for mounting a connector
-    translate(v = [0, -E/2 - frame - handle_length + 15, 0])
-        connectors();
+    if (handle_length > 0) {
+        translate(v = [0, -E/2 - frame_width - handle_length + 15, 0])
+            connectors();
+    }
 
     // Frequency text on handle near connector
-    translate(v = [0, -E/2 - frame - handle_length + 30, thickness - 0.6])
-        linear_extrude(0.6) {
-            text(str(freq_mhz), size=tsize, font=font, halign = "center");
-        }
+    if (show_frequency_text && handle_length > 0) {
+        translate(v = [0, -E/2 - frame_width - handle_length + 30, frame_thickness - 0.6])
+            linear_extrude(0.6) {
+                text(str(freq_mhz), size=text_size, font=text_font, halign = "center");
+            }
+    }
 }
 
 module cable_ties(spacing) {
     translate(v = [-spacing, 0, 0])
-        rcube([1.5, 5, thickness], 0.5, true, false);
+        rcube([1.5, 5, frame_thickness], 0.5, true, false);
     translate(v = [spacing, 0, 0])
-        rcube([1.5, 5, thickness], 0.5, true, false);
+        rcube([1.5, 5, frame_thickness], 0.5, true, false);
 }
 
 module connectors() {
     if (connector=="sma") {
         // holes for SMA jack
-        cylinder(h=(dia + thickness), r=4.5/2);
+        cylinder(h=(dia + frame_thickness), r=4.5/2);
         translate(v = [6, 0, 0])
-            cylinder(h=(thickness), r=3/2);
+            cylinder(h=(frame_thickness), r=3/2);
         translate(v = [-6, 0, 0])
-            cylinder(h=(thickness), r=3/2);
+            cylinder(h=(frame_thickness), r=3/2);
     }
     else if (connector=="bnc") {
         // holes for BNC jack
         translate(v = [0, 1, 0])
-            cylinder(h=(thickness), r=11/2);
+            cylinder(h=(frame_thickness), r=11/2);
         translate(v = [6, 7, 0])
-            cylinder(h=(thickness), r=3/2);
+            cylinder(h=(frame_thickness), r=3/2);
         translate(v = [-6, 7, 0])
-            cylinder(h=(thickness), r=3/2);
+            cylinder(h=(frame_thickness), r=3/2);
         translate(v = [6, -5, 0])
-            cylinder(h=(thickness), r=3/2);
+            cylinder(h=(frame_thickness), r=3/2);
         translate(v = [-6, -5, 0])
-            cylinder(h=(thickness), r=3/2);
+            cylinder(h=(frame_thickness), r=3/2);
     }
     else if (connector=="screw") {
         // just a screw hole
-        cylinder(h=(thickness), r=screw_dia/2);
+        cylinder(h=(frame_thickness), r=screw_dia/2);
     }
 }
 
