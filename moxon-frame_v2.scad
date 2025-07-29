@@ -244,6 +244,14 @@ difference() {
     translate(v = [(A/2 + frame_width)/2, 0, 0])
         rcube([(A/2 - frame_width*2), E - frame_width, frame_thickness], 2.5, true, false);
 
+    // Big notch for wire insertion
+    translate(v = [0, E/2, 0])
+        rcube([10, 20, frame_thickness], 3, true, false);
+
+    // Smaller notch for wire routing
+    translate(v = [0, E/2, 0])
+        rcube([5, 40, frame_thickness], 1.5, true, false);
+
     // Holes for cable ties (scaled with antenna size)
     if (E > 80) {
         cable_ties(4);
