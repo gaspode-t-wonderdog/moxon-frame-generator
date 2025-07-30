@@ -145,8 +145,8 @@ wire_length_mm = calc_result[8] * wire_velocity_factor * structure_correction;
 compactness_factor = calc_result[9];
 
 // Wire channel parameters
-dia = wire_dia_mm + wire_tolerance;    // Add tolerance for 3D printing
-wire_depth = dia * wire_depth_ratio;
+wire_channel_dia = wire_dia_mm + wire_tolerance;    // Add tolerance for 3D printing
+wire_depth = wire_dia_mm * wire_depth_ratio;
 
 // Verbose output
 echo(str("=== MOXON CALCULATOR RESULTS ==="));
@@ -203,38 +203,38 @@ difference() {
     // Wire channels - vertical sides
     translate(v = [-A/2, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate([90, 0, 0])  
-        linear_extrude(E - corner_radius*2) circle(dia/2);
+        linear_extrude(E - corner_radius*2) circle(wire_channel_dia/2);
     translate(v = [A/2, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate([90, 0, 0])  
-        linear_extrude(E - corner_radius*2) circle(dia/2);
+        linear_extrude(E - corner_radius*2) circle(wire_channel_dia/2);
         
     // Wire channels - horizontal sides
     translate(v = [-A/2 + corner_radius, E/2, frame_thickness-wire_depth])
         rotate([0, 90, 0]) 
-        linear_extrude(A - corner_radius*2) circle(dia/2);
+        linear_extrude(A - corner_radius*2) circle(wire_channel_dia/2);
     translate(v = [-A/2 + corner_radius, -E/2, frame_thickness-wire_depth])
         rotate([0, 90, 0]) 
-        linear_extrude(A - corner_radius*2) circle(dia/2);
+        linear_extrude(A - corner_radius*2) circle(wire_channel_dia/2);
 
     // Wire channel rounded corners
     translate(v = [-A/2 + corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
         rotate([0, 0, 90]) 
-        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
+        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
     translate(v = [A/2 - corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
-        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
+        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
     translate(v = [-A/2 + corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
         rotate([0, 0, 180]) 
-        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
+        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
     translate(v = [A/2 - corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
         rotate([0, 0, 270]) 
-        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(dia/2);
+        rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
 
-    // Left wire endstop (driver tail)
-    translate(v = [-(A/2 + dia/2 + 1), E/2 - B - C, 0])
-        cube(size=[dia + 2, C, frame_thickness]);
-    // Right wire endstop (reflector tail)
-    translate(v = [(A/2 - dia/2 - 1), E/2 - B - C, 0])
-        cube(size=[dia + 2, C, frame_thickness]);
+    // Left wire endstop (driver tail) - rounded
+    translate(v = [-(A/2 + wire_channel_dia/3), E/2 - B - C, 0])
+        rcube([wire_channel_dia * 2, C, frame_thickness], 0.5, true, false);
+    // Right wire endstop (reflector tail) - rounded
+    translate(v = [(A/2 - wire_channel_dia/3), E/2 - B - C, 0])
+        rcube([wire_channel_dia * 2, C, frame_thickness], 0.5, true, false);
 
     // Left wing cutout
     translate(v = [-((A/2 + frame_width)/2), 0, 0])
