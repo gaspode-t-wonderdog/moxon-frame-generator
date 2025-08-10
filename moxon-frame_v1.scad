@@ -146,5 +146,5 @@ module connectors() {
 
 module rcube(size, r = 0, xy_center = false, z_center = false) {
 	linear_extrude(size.z, center = z_center, convexity = 5)
-		offset(r) offset(-r) square([size.x, size.y], center = true);
+		offset(r) offset(-r) square([size.x, size.y], center = xy_center);
 }
