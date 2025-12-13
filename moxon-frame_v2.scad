@@ -8,13 +8,13 @@
 // license: CC-BY-NC-SA
 
 
-A = 249.33;
-B = 33.8;
-C = 10.84;
-D = 47.73;
-E = 92.37;
+A = 226.54;					// those values are calculated for 433 MHz with
+B = 30.51;					// a correction factor of 1.1 (476.3 Mhz)
+C = 10.05;
+D = 43.42;
+E = 83.98;
 
-dia = 1.0;					// wire diameter (+ some tolerance for 3D-printing, .05 maybe)
+dia = 1.0;					// wire diameter (+ some tolerance for 3D-printing, +- 0.05 maybe)
 
 frame = 7;					// frame width
 thickness = 2.5;			// frame thickness
@@ -26,7 +26,7 @@ handle_length = 60;
 connector = "bnc";			// "sma" (2-hole sma jack), "bnc" (4-hole jack), sma2/bnc2 (no mounting holes), "screw" or none
 screw_dia = 4.4;
 
-freq = "433";				// only used for text generation
+freq = "433";				// only used for text generation for now
 tsize = 7;
 font = "Liberation Sans:style=Bold";
 
