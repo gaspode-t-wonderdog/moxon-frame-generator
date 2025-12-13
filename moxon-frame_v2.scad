@@ -28,7 +28,7 @@ screw_dia = 4.4;
 
 freq = "433";				// only used for text generation
 tsize = 7;
-font = "Core Sans D 55 Bold";
+font = "Liberation Sans:style=Bold";
 
 
 $fn = 255;
@@ -41,6 +41,11 @@ difference() {
 		// handle
 		translate(v = [0, -E/2 - frame - handle_length/2 + 10, 0])
 			rcube([21, handle_length + 10, thickness], 6.5, true, false);
+
+		// text
+		translate(v = [0, -(E/2 - 5), thickness])
+			linear_extrude(0.5)
+				text(freq, size=tsize, font=font, halign = "center");
 	}
 
 	// wire channels
@@ -104,11 +109,6 @@ difference() {
 	// holes for mounting a connector
 	translate(v = [0, -E/2 - frame - handle_length + 15, 0])
 		connectors();
-
-	// text
-	translate(v = [0, -(E/2 - 5), thickness - 0.6])
-		linear_extrude(0.6)
-			text(freq, size=tsize, font=font, halign = "center");
 }
 
 
