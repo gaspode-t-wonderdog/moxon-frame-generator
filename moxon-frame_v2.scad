@@ -23,7 +23,7 @@ wire_depth = dia/3;			// where the wire channel gets placed
 
 handle_length = 60;
 
-connector = "bnc";			// "sma" (2-hole sma jack), "bnc" (4-hole jack), "screw" or none
+connector = "bnc";			// "sma" (2-hole sma jack), "bnc" (4-hole jack), sma2/bnc2 (no mounting holes), "screw" or none
 screw_dia = 4.4;
 
 freq = "433";				// only used for text generation
@@ -130,6 +130,12 @@ module connectors() {
 		translate(v = [-6, 0, 0])
 			cylinder(h=(thickness), r=3/2);
 	}
+	if (connector=="sma2") {
+		// holes for another SMA jack with recessed hex nut
+		cylinder(h=(dia + thickness), r=6.5/2);
+		translate(v = [0, 0, 1])
+			cylinder(h=(dia + thickness), r=9.5/2, $fn=6);
+	}
 	else if (connector=="bnc") {
 		// 4-hole BNC jack
 		translate(v = [0, 1, 0]) {
@@ -143,6 +149,16 @@ module connectors() {
 				cylinder(h=(thickness), r=3.3/2);
 			translate(v = [-6.35, -6.35, 0])
 				cylinder(h=(thickness), r=3.3/2);
+		}
+	}
+	else if (connector=="bnc2") {
+		// another BNC jack (without mounting holes)
+		difference() {
+			cylinder(h=(thickness), r=9.2/2);
+			translate(v = [0, 5.1, 0])
+				cube([10, 2, thickness*2], center=true);
+			translate(v = [0, -5.1, 0])
+				cube([10, 2, thickness*2], center=true);
 		}
 	}
 	else if (connector=="screw") {
