@@ -14,7 +14,7 @@ C = 10.84;
 D = 47.73;
 E = 92.37;
 
-dia = 1.1;					// wire diameter (+ some tolerance for 3D-printing, .1 maybe)
+dia = 1.0;					// wire diameter (+ some tolerance for 3D-printing, .05 maybe)
 
 frame = 7;					// frame width
 thickness = 2.5;			// frame thickness
