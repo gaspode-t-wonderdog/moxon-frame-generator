@@ -123,7 +123,7 @@ module cable_ties(spacing) {
 
 module connectors() {
 	if (connector=="sma") {
-		// holes for SMA jack
+		// 2-hole SMA jack
 		cylinder(h=(dia + thickness), r=4.5/2);
 		translate(v = [6, 0, 0])
 			cylinder(h=(thickness), r=3/2);
@@ -131,17 +131,19 @@ module connectors() {
 			cylinder(h=(thickness), r=3/2);
 	}
 	else if (connector=="bnc") {
-		// holes for BNC jack
-		translate(v = [0, 1, 0])   // 2do placement
-			cylinder(h=(thickness), r=11/2);
-		translate(v = [6, 7, 0])
-			cylinder(h=(thickness), r=3/2);
-		translate(v = [-6, 7, 0])
-			cylinder(h=(thickness), r=3/2);
-		translate(v = [6, -5, 0])
-			cylinder(h=(thickness), r=3/2);
-		translate(v = [-6, -5, 0])
-			cylinder(h=(thickness), r=3/2);
+		// 4-hole BNC jack
+		translate(v = [0, 1, 0]) {
+			translate(v = [0, 0, 0])
+				cylinder(h=(thickness), r=11/2);
+			translate(v = [6.35, 6.35, 0])
+				cylinder(h=(thickness), r=3.3/2);
+			translate(v = [-6.35, 6.35, 0])
+				cylinder(h=(thickness), r=3.3/2);
+			translate(v = [6.35, -6.35, 0])
+				cylinder(h=(thickness), r=3.3/2);
+			translate(v = [-6.35, -6.35, 0])
+				cylinder(h=(thickness), r=3.3/2);
+		}
 	}
 	else if (connector=="screw") {
 		// just a screw hole
