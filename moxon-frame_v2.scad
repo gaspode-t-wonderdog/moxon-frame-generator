@@ -124,7 +124,7 @@ module cable_ties(spacing) {
 module connectors() {
 	if (connector=="sma") {
 		// 2-hole SMA jack
-		cylinder(h=(dia + thickness), r=4.5/2);
+		cylinder(h=(thickness), r=4.5/2);
 		translate(v = [6, 0, 0])
 			cylinder(h=(thickness), r=3/2);
 		translate(v = [-6, 0, 0])
@@ -132,9 +132,9 @@ module connectors() {
 	}
 	if (connector=="sma2") {
 		// holes for another SMA jack with recessed hex nut
-		cylinder(h=(dia + thickness), r=6.5/2);
+		cylinder(h=(thickness), r=6.5/2);
 		translate(v = [0, 0, 1])
-			cylinder(h=(dia + thickness), r=9.5/2, $fn=6);
+			cylinder(h=(thickness), r=9.5/2, $fn=6);
 	}
 	else if (connector=="bnc") {
 		// 4-hole BNC jack
