@@ -20,7 +20,7 @@ correction_factor = 1.1;
 // Frame wall thickness (mm)
 frame_width = 7.0;
 // Frame height/thickness (mm)
-frame_thickness = 3.0;
+frame_thickness = 2.5;
 // Corner rounding radius (mm)
 corner_radius = 3.0;
 
@@ -44,7 +44,7 @@ screw_dia = 4.4;
 
 // === APPEARANCE ===
 // Frequency label text size (mm)
-text_size = 6;
+text_size = 7;
 // Text font
 text_font = "Liberation Sans:style=Bold";
 // Show frequency label on handle
@@ -161,13 +161,10 @@ if (!diameter_valid) {
 
 difference() {
 	union() {
-		// Outer roundtangle
-		rcube([A + frame_width, E + frame_width, frame_thickness], 3, true, false);
-		// Handle
-		if (handle_length > 0) {
-			translate(v = [0, -E/2 - frame_width - handle_length/2 + 10, 0])
-				rcube([handle_width, handle_length + 10, frame_thickness], 6.5, true, false);
-		}
+		// base shape
+		linear_extrude(frame_thickness)
+			fillet_o(3) fillet_i(1.5)
+				base();
 
 		// Frequency text on handle near connector
 		if (show_frequency_text) {
@@ -207,14 +204,6 @@ difference() {
 	translate(v = [(A/2 - wire_channel_dia/2 - 1), E/2 - B - C, 0])
 		rcube([wire_channel_dia + 2, C, frame_thickness], 0.5, false, false);
 
-	// Left wing cutout
-	translate(v = [-((A/2 + frame_width)/2), 0, 0])
-		rcube([(A/2 - frame_width*2), E - frame_width, frame_thickness], 2.5, true, false);
-
-	// Right wing cutout
-	translate(v = [(A/2 + frame_width)/2, 0, 0])
-		rcube([(A/2 - frame_width*2), E - frame_width, frame_thickness], 2.5, true, false);
-
 	// Big notch for wire insertion
 	translate(v = [0, E/2, 0])
 		rcube([10, 20, frame_thickness], 3, true, false);
@@ -240,9 +229,23 @@ difference() {
 
 	// Holes for mounting a connector
 	if (handle_length > 0) {
-		translate(v = [0, -E/2 - frame_width - handle_length + 15, 0])
+		translate(v = [0, -E/2 - frame_width - handle_length + 14, 0])
 			connectors();
 	}
+}
+
+module base() {
+	difference() {
+		// outer roundtangle
+		square([A + frame_width, E + frame_width], center=true);
+		// cutout
+		square([(A - frame_width), E - frame_width], center=true);
+	}
+
+	// handle
+	translate(v = [0, -handle_length/2, 0])
+		fillet_o(6)
+			square([handle_width, E + handle_length + frame_width], center=true);
 }
 
 module cable_ties(spacing) {
@@ -296,6 +299,14 @@ module connectors() {
 		// just a screw hole
 		cylinder(h=(frame_thickness), r=screw_dia/2);
 	}
+}
+
+module fillet_o(r) {
+	offset(r) offset(-r) children();
+}
+
+module fillet_i(r) {
+	offset(r = -r) offset(delta = r) children();
 }
 
 // Rounded cube function (adapted from NopSCADlib)

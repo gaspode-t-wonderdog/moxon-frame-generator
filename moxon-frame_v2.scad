@@ -8,19 +8,20 @@
 // license: CC-BY-NC-SA
 
 
-A = 226.54;					// those values are calculated for 433 MHz with
-B = 30.51;					// a correction factor of 1.1 (476.3 Mhz)
+A = 226.54;				// those values are calculated for 433 MHz with
+B = 30.51;				// a correction factor of 1.1 (476.3 Mhz)
 C = 10.05;
 D = 43.42;
 E = 83.98;
 
-dia = 1.0;					// wire diameter (+ some tolerance for 3D-printing, +- 0.05 maybe)
+dia = 1.0;				// wire diameter (+ some tolerance for 3D-printing, +- 0.05 maybe)
 
-frame = 7;					// frame width
+frame = 7;				// frame width
 thickness = 2.5;			// frame thickness
 corner_radius = 3;
 wire_depth = dia/3;			// where the wire channel gets placed
 
+handle_width = 21;
 handle_length = 60;
 
 connector = "bnc";			// "sma" (2-hole sma jack), "bnc" (4-hole jack), sma2/bnc2 (no mounting holes), "screw" or none
@@ -36,11 +37,10 @@ $fn = 255;
 
 difference() {
 	union() {
-		// outer roundtangle
-		rcube([A + frame, E + frame, thickness], 3, true, false);
-		// handle
-		translate(v = [0, -E/2 - frame - handle_length/2 + 10, 0])
-			rcube([21, handle_length + 10, thickness], 6.5, true, false);
+		// base shape
+		linear_extrude(thickness)
+			fillet_o(3) fillet_i(1.5)
+				base();
 
 		// text
 		translate(v = [0, -(E/2 - 5), thickness])
@@ -75,14 +75,6 @@ difference() {
 	translate(v = [(A/2 - dia/2 - 1), E/2 - B - C, 0])
 		cube(size=[dia + 2, C, thickness]);
 
-	// left wing cutout
-	translate(v = [-((A/2 + frame)/2), 0, 0])
-		rcube([(A/2 - frame*2), E - frame, thickness], 2.5, true, false);
-
-	// right wing cutout
-	translate(v = [(A/2 + frame)/2, 0, 0])
-		rcube([(A/2 - frame*2), E - frame, thickness], 2.5, true, false);
-
 	// big notch
 	translate(v = [0, E/2, 0])
 		rcube([10, 20, thickness], 3, true, false);
@@ -107,12 +99,26 @@ difference() {
 	}
 
 	// holes for mounting a connector
-	translate(v = [0, -E/2 - frame - handle_length + 15, 0])
+	translate(v = [0, -E/2 - frame - handle_length + 14, 0])
 		connectors();
 }
 
 
 // modules
+
+module base() {
+	difference() {
+		// outer roundtangle
+		square([A + frame, E + frame], center=true);
+		// cutout
+		square([(A - frame), E - frame], center=true);
+	}
+
+	// handle
+	translate(v = [0, -handle_length/2, 0])
+		fillet_o(6)
+			square([handle_width, E + handle_length + frame], center=true);
+}
 
 module cable_ties(spacing) {
 	translate(v = [-spacing, 0, 0])
@@ -167,6 +173,13 @@ module connectors() {
 	}
 }
 
+module fillet_o(r) {
+	offset(r) offset(-r) children();
+}
+
+module fillet_i(r) {
+	offset(r = -r) offset(delta = r) children();
+}
 
 // adapted from https://github.com/nophead/NopSCADlib
 
