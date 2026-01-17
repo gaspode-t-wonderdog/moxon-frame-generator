@@ -197,12 +197,12 @@ difference() {
 	translate([A/2 - corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
 		rotate([0, 0, 270]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
 
-	// Left wire endstop (driver tail) - rounded
-	translate([-(A/2 + wire_channel_dia/2 + 1), E/2 - B - C, 0])
-		rcube([wire_channel_dia + 2, C, frame_thickness], 0.5, false, false);
-	// Right wire endstop (reflector tail) - rounded
-	translate([(A/2 - wire_channel_dia/2 - 1), E/2 - B - C, 0])
-		rcube([wire_channel_dia + 2, C, frame_thickness], 0.5, false, false);
+	// left wire endstop
+	translate([-(A/2 +  wire_channel_dia/2 + 1), E/2 - B - C, 0])
+		cube(size=[ wire_channel_dia + 2, C, frame_thickness]);
+	// right wire endstop
+	translate([(A/2 -  wire_channel_dia/2 - 1), E/2 - B - C, 0])
+		cube(size=[wire_channel_dia + 2, C, frame_thickness]);
 
 	// Big notch for wire insertion
 	translate([0, E/2, 0])
