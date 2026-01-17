@@ -168,7 +168,7 @@ difference() {
 
 		// Frequency text on handle near connector
 		if (show_frequency_text) {
-			translate(v = [0, -(E/2 - 5), frame_thickness])
+			translate([0, -(E/2 - 5), frame_thickness])
 				linear_extrude(0.5) {
 					text(str(freq_mhz), size=text_size, font=text_font, halign = "center");
 				}
@@ -176,60 +176,60 @@ difference() {
 	}
 
 	// Wire channels - vertical sides
-	translate(v = [-A/2, E/2 - corner_radius, frame_thickness-wire_depth])
+	translate([-A/2, E/2 - corner_radius, frame_thickness-wire_depth])
 		rotate([90, 0, 0]) linear_extrude(E - corner_radius*2) circle(wire_channel_dia/2);
-	translate(v = [A/2, E/2 - corner_radius, frame_thickness-wire_depth])
+	translate([A/2, E/2 - corner_radius, frame_thickness-wire_depth])
 		rotate([90, 0, 0]) linear_extrude(E - corner_radius*2) circle(wire_channel_dia/2);
 
 	// Wire channels - horizontal sides
-	translate(v = [-A/2 + corner_radius, E/2, frame_thickness-wire_depth])
+	translate([-A/2 + corner_radius, E/2, frame_thickness-wire_depth])
 		rotate([0, 90, 0]) linear_extrude(A - corner_radius*2) circle(wire_channel_dia/2);
-	translate(v = [-A/2 + corner_radius, -E/2, frame_thickness-wire_depth])
+	translate([-A/2 + corner_radius, -E/2, frame_thickness-wire_depth])
 		rotate([0, 90, 0]) linear_extrude(A - corner_radius*2) circle(wire_channel_dia/2);
 
 	// Wire channel rounded corners
-	translate(v = [-A/2 + corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
+	translate([-A/2 + corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
 		rotate([0, 0, 90]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
-	translate(v = [A/2 - corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
+	translate([A/2 - corner_radius, E/2 - corner_radius, frame_thickness-wire_depth])
 		rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
-	translate(v = [-A/2 + corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
+	translate([-A/2 + corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
 		rotate([0, 0, 180]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
-	translate(v = [A/2 - corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
+	translate([A/2 - corner_radius, -E/2 + corner_radius, frame_thickness-wire_depth])
 		rotate([0, 0, 270]) rotate_extrude(angle=90) translate ([corner_radius,0,0]) circle(wire_channel_dia/2);
 
 	// Left wire endstop (driver tail) - rounded
-	translate(v = [-(A/2 + wire_channel_dia/2 + 1), E/2 - B - C, 0])
+	translate([-(A/2 + wire_channel_dia/2 + 1), E/2 - B - C, 0])
 		rcube([wire_channel_dia + 2, C, frame_thickness], 0.5, false, false);
 	// Right wire endstop (reflector tail) - rounded
-	translate(v = [(A/2 - wire_channel_dia/2 - 1), E/2 - B - C, 0])
+	translate([(A/2 - wire_channel_dia/2 - 1), E/2 - B - C, 0])
 		rcube([wire_channel_dia + 2, C, frame_thickness], 0.5, false, false);
 
 	// Big notch for wire insertion
-	translate(v = [0, E/2, 0])
+	translate([0, E/2, 0])
 		rcube([10, 20, frame_thickness], 3, true, false);
 
 	// Smaller notch for wire routing
-	translate(v = [0, E/2, 0])
+	translate([0, E/2, 0])
 		rcube([5, 40, frame_thickness], 1.5, true, false);
 
 	// Holes for cable ties (scaled with antenna size)
 	if (E > 80) {
 		cable_ties(4);
-		translate(v = [0, -20, 0])
+		translate([0, -20, 0])
 			cable_ties(4);
 	}
 	else if (E > 40) {
-		translate(v = [0, -7, 0])
+		translate([0, -7, 0])
 			cable_ties(4);
 	}
 	if (handle_length > 30) {
-		translate(v = [0, -(E/2) - 15, 0])
+		translate([0, -(E/2) - 15, 0])
 			cable_ties(4);
 	}
 
 	// Holes for mounting a connector
 	if (handle_length > 0) {
-		translate(v = [0, -E/2 - frame_width - handle_length + 14, 0])
+		translate([0, -E/2 - frame_width - handle_length + 14, 0])
 			connectors();
 	}
 }
@@ -243,15 +243,15 @@ module base() {
 	}
 
 	// handle
-	translate(v = [0, -handle_length/2, 0])
+	translate([0, -handle_length/2, 0])
 		fillet_o(6)
 			square([handle_width, E + handle_length + frame_width], center=true);
 }
 
 module cable_ties(spacing) {
-	translate(v = [-spacing, 0, 0])
+	translate([-spacing, 0, 0])
 		rcube([1.5, 5, frame_thickness], 0.5, true, false);
-	translate(v = [spacing, 0, 0])
+	translate([spacing, 0, 0])
 		rcube([1.5, 5, frame_thickness], 0.5, true, false);
 }
 
@@ -259,29 +259,29 @@ module connectors() {
 	if (connector=="sma") {
 		// 2-hole SMA jack
 		cylinder(h=(frame_thickness), r=4.5/2);
-		translate(v = [6, 0, 0])
+		translate([6, 0, 0])
 			cylinder(h=(frame_thickness), r=3/2);
-		translate(v = [-6, 0, 0])
+		translate([-6, 0, 0])
 			cylinder(h=(frame_thickness), r=3/2);
 	}
 	if (connector=="sma2") {
 		// holes for another SMA jack with recessed hex nut
 		cylinder(h=(frame_thickness), r=6.5/2);
-		translate(v = [0, 0, 1])
+		translate([0, 0, 1])
 			cylinder(h=(frame_thickness), r=9.5/2, $fn=6);
 	}
 	else if (connector=="bnc") {
 		// 4-hole BNC jack
-		translate(v = [0, 1, 0]) {
-			translate(v = [0, 0, 0])
+		translate([0, 1, 0]) {
+			translate([0, 0, 0])
 				cylinder(h=(frame_thickness), r=11/2);
-			translate(v = [6.35, 6.35, 0])
+			translate([6.35, 6.35, 0])
 				cylinder(h=(frame_thickness), r=3.3/2);
-			translate(v = [-6.35, 6.35, 0])
+			translate([-6.35, 6.35, 0])
 				cylinder(h=(frame_thickness), r=3.3/2);
-			translate(v = [6.35, -6.35, 0])
+			translate([6.35, -6.35, 0])
 				cylinder(h=(frame_thickness), r=3.3/2);
-			translate(v = [-6.35, -6.35, 0])
+			translate([-6.35, -6.35, 0])
 				cylinder(h=(frame_thickness), r=3.3/2);
 		}
 	}
@@ -289,9 +289,9 @@ module connectors() {
 		// another BNC jack (without mounting holes)
 		difference() {
 			cylinder(h=(frame_thickness), r=9.2/2);
-			translate(v = [0, 5.1, 0])
+			translate([0, 5.1, 0])
 				cube([10, 2, frame_thickness*2], center=true);
-			translate(v = [0, -5.1, 0])
+			translate([0, -5.1, 0])
 				cube([10, 2, frame_thickness*2], center=true);
 		}
 	}
