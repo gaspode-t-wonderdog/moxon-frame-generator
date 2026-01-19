@@ -205,8 +205,8 @@ difference() {
 		cube(size=[wire_channel_dia + 2, C, frame_thickness]);
 
 	// Big notch for wire insertion
-	translate([0, E/2, 0])
-		rcube([10, 20, frame_thickness], 3, true, false);
+	translate([0, E/2+frame_width/2, 0])
+		rcube([10, 20+frame_width, frame_thickness], 3, true, false);
 
 	// Smaller notch for wire routing
 	translate([0, E/2, 0])

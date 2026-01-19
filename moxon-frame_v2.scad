@@ -76,8 +76,8 @@ difference() {
 		cube(size=[dia + 2, C, thickness]);
 
 	// big notch
-	translate([0, E/2, 0])
-		rcube([10, 20, thickness], 3, true, false);
+	translate([0, E/2+frame/2, 0])
+		rcube([10, 20+frame, thickness], 3, true, false);
 
 	// smaller notch
 	translate([0, E/2, 0])
